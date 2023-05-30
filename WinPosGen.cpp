@@ -3,7 +3,7 @@
 
 using namespace std;
 
-int boardSize = 19;
+int boardSize = 5;
 vector<vector<vector<int>>> WinPos;
 
 // Winpos[] - single winning pos
@@ -12,52 +12,7 @@ vector<vector<vector<int>>> WinPos;
 
 
 // Winpos[2*boardSize+2][boardSize][2]
-void WinPosGen() {
-    // Generate einning rows
-    for (int ROW = 0; ROW < boardSize; ROW++) {
-        vector<vector<int>> pos;
-        for(int COL = 0; COL < boardSize; COL++) {
-           vector<int> index(2);
-           index[0] = ROW;
-           index[1] = COL;
-           pos.push_back(index);
-        };
-        WinPos.push_back(pos);   
-    };
 
-    // Generate winning columns
-    for (int ROW = 0; ROW < boardSize; ROW++) {
-        vector<vector<int>> pos;
-        for(int COL = 0; COL < boardSize; COL++) {
-            vector<int> index(2);
-            index[0] = COL;
-            index[1] = ROW;
-            pos.push_back(index);
-        };
-        WinPos.push_back(pos);   
-    };
-
-    // Generate 1-st diagonal
-    vector<vector<int>> d1pos;
-    for(int i = 0 ; i < boardSize; i++) {
-        vector<int> index(2);
-        index[0] = index[1] = i;
-        d1pos.push_back(index);
-    };
-    WinPos.push_back(d1pos);
-
-    // Generate 2-nd diagonal
-    vector<vector<int>> d2pos;
-    for(int i = 0 ; i < boardSize; i++) {
-        vector<int> index(2);
-        index[0] = (boardSize - 1) - i;
-        index[1] = i;
-        d2pos.push_back(index);
-    };
-    WinPos.push_back(d2pos);
-
-
-};
 void print3DVector(const std::vector<std::vector<std::vector<int>>>& vec)
 {
     // Iterate over the elements of the vector
@@ -79,7 +34,6 @@ vector<vector<char>> setBoard(int size) {
 
 template <typename T>
 void printBoard(vector <vector<T>> BOARD) {
-
     for(int rows = 0; rows < boardSize; rows++) {
         for(int cols = 0; cols < boardSize; cols++) {
             cout << BOARD[rows][cols];
