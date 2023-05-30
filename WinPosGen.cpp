@@ -3,7 +3,7 @@
 
 using namespace std;
 
-int boardSize = 5;
+int boardSize = 19;
 vector<vector<vector<int>>> WinPos;
 
 // Winpos[] - single winning pos
@@ -71,14 +71,34 @@ void print3DVector(const std::vector<std::vector<std::vector<int>>>& vec)
         std::cout << std::endl;  // Print an additional newline after each 3D layer
     }
 }
+vector<vector<char>> setBoard(int size) {
+
+    vector<vector<char>> BOARD(size, vector<char>(size, ' '));
+    return BOARD;
+}
+
+template <typename T>
+void printBoard(vector <vector<T>> BOARD) {
+
+    for(int rows = 0; rows < boardSize; rows++) {
+        for(int cols = 0; cols < boardSize; cols++) {
+            cout << BOARD[rows][cols];
+            if(cols < boardSize-1) cout << " | ";
+        }
+        cout << endl;
+        for(int n = 0; n < 3*(boardSize-1)+boardSize; n++) if(rows<boardSize-1) cout<<"-";
+        cout << endl;
+    }
+}
 
 int main() {
 
-    WinPosGen();
-    print3DVector(WinPos);
+    // WinPosGen();
+    // print3DVector(WinPos);
     
+    vector<vector<char>> board = setBoard(boardSize);
 
-
+    printBoard(board);
 
     return 0;
 }
