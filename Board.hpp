@@ -69,8 +69,6 @@ private:
 
 
 
-
-
 public:
 
     Board(int size) {
@@ -98,16 +96,16 @@ public:
         }
     };
 
-    //Add evaluating in bot's prediction
-    int evaluate() {
+
+    int evaluate(brd_type state) {
 
     //Iterate through all possible wins to check win
         for (int i = 0; i < 2*BOARD_SIZE+2; i++)
         {
-        //Check for player's win
+        //Check for bots's win
             int isMAX = 0;
             for(int j = 0; j < BOARD_SIZE; j++) {
-                if ((BOARD[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != PLAYER))
+                if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != BOT))
                 {
                     break;
                 }
@@ -115,10 +113,10 @@ public:
             }
             if(isMAX==BOARD_SIZE) return 10000;
         
-        //Check for bot's win
+        //Check for players's win
             int isMIN = 0;
             for(int j =0; j < BOARD_SIZE; j++) {
-                if ((BOARD[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != BOT))
+                if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != PLAYER))
                 {
                     break;
                 }
@@ -133,7 +131,7 @@ public:
         {
             int isMAX = 0;
             for(int j = 0; j < BOARD_SIZE; j++) {
-                if ((BOARD[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != BOT))
+                if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != PLAYER))
                 {
                     isMAX++;
                 }
@@ -142,7 +140,7 @@ public:
             
             int isMIN = 0;
             for(int j =0; j < BOARD_SIZE; j++) {
-                if ((BOARD[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != PLAYER))
+                if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != BOT))
                 {
                     isMIN++;
                 }
@@ -182,7 +180,7 @@ public:
 
     int minmaxrec(brd_type state, int depth, int a, int b, bool isMAX)
 {
-    int value = evaluate();
+    int value = evaluate(state);
     if (depth == 0 || value == MIN || value == MAX)
         return value;
 
@@ -243,6 +241,77 @@ public:
         return minEval;
     }
 }
+
+
+    int minmax(brd_type state, int depth, int player)
+{
+    if (!(player == 1 || player == 2))
+        return -1;
+
+    int value = evaluate(state);
+    if (depth == 0 || value == MIN || value == MAX)
+        return value;
+
+    int move;
+    for (int i = 0; i < 5; i++)
+    {
+        for (int j = 0; j < 5; j++)
+        {
+            if (state[i][j] == 0) {
+                move = (i + 1) * 10 + j + 1;
+                break;
+            }
+        }
+    }
+
+    if (player == 1)
+    {
+        int maxEval = MIN;
+        for (int i = 0; i < 5; i++)
+        {
+            for (int j = 0; j < 5; j++)
+            {
+                if (state[i][j] == 0)
+                {
+                    brd_type nextState = state;
+                    nextState[i][j] = 1;
+
+                    int eval = minmaxrec(nextState, depth - 1, maxEval, MAX, false);
+                    if (eval > maxEval)
+                    {
+                        move = (i + 1) * 10 + j + 1;
+                        maxEval = eval;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        int minEval = MAX;
+        for (int i = 0; i < 5; i++)
+        {
+            for (int j = 0; j < 5; j++)
+            {
+                if (state[i][j] == 0)
+                {
+                    brd_type nextState = state;
+                    nextState[i][j] = 2;
+
+                    int eval = minmaxrec(nextState, depth - 1, MIN, minEval, true);
+                    if (eval < minEval)
+                    {
+                        move = (i + 1) * 10 + j + 1;
+                        minEval = eval;
+                    }
+                }
+            }
+        }
+    }
+
+    return move;
+}
+
 
 };  
 #endif
