@@ -86,17 +86,91 @@ public:
     };
     
     bool isBoardFull() {
-        
-        for (int i = 0; i < BOARD_SIZE; ++i) {
-            for (int j = 0; j < BOARD_SIZE; ++j) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
                 if (BOARD[i][j] == EMPTY_CELL)
                     return false;
             }
+        }
+        return true;
+    }
+
+    bool isGameOver() {
+        if (isBoardFull()) {
+            std::cout << "Board full, end" << std::endl;
             return true;
         }
-    };
+        else if(evaluate(BOARD) == MIN) {
+            std::cout << "You won, end" << std:: endl;
+            return true;
+        }
+        else if (evaluate(BOARD) == MAX) {
+            std::cout << "Bot won, end" << std::endl;
+            return true;
+        }
+        else return false;
+    }
 
+    bool isCellEmpty(std::pair<int, int> pos) {
+        if(BOARD[pos.first][pos.second]==EMPTY_CELL)
+            return true;
+        else return false;
+    }
 
+    void printWinPos()
+    {
+        // Iterate over the elements of the vector
+        for (const auto& dim1 : WIN_POS) {
+            for (const auto& dim2 : dim1) {
+                for (const auto& element : dim2) {
+                    std::cout << element << " ";
+                }
+                std::cout << std::endl;  // Print a newline after each 2D matrix
+            }
+            std::cout << std::endl;  // Print an additional newline after each 3D layer
+        }
+    }
+
+    void printBoard() {
+        for(int rows = 0; rows < BOARD_SIZE; rows++) {
+            for(int cols = 0; cols < BOARD_SIZE; cols++) {
+                std::cout << BOARD[rows][cols];
+                if(cols < BOARD_SIZE-1) std::cout << " | ";
+            }
+            std::cout << std::endl;
+            for(int n = 0; n < 3*(BOARD_SIZE-1)+BOARD_SIZE; n++) if(rows<BOARD_SIZE-1) std::cout<<"-";
+            std::cout << std::endl;
+        }
+}
+
+    void move(std::pair<int, int> pos, char player) {
+        // std::cout << pos.first << pos.second;
+        if (pos.first >= 0 && pos.second >= 0 && pos.first < BOARD_SIZE && pos.second < BOARD_SIZE && isCellEmpty(pos))
+            BOARD[pos.first][pos.second] = player;
+
+    }
+
+    void inputMove() {
+
+        std::pair<int, int> pos;
+        bool valid_move = false;
+        do {
+            std::cout << "Where to put? [row][col]" << std::endl;
+            std::cin >> pos.first >> pos.second;
+                pos.first--;
+                pos.second--;
+        
+        
+            if (pos.first >= 0 && pos.first < BOARD_SIZE && pos.second >= 0 && pos.second < BOARD_SIZE && isCellEmpty(pos)) {
+
+                move(pos, 'X');
+                valid_move=true;
+            }
+            else std::cout << "Wrong move, try again" << std::endl;
+        } while(valid_move == false);
+    }
+
+//===========BOT=====================================================
     int evaluate(brd_type state) {
 
     //Iterate through all possible wins to check win
@@ -149,35 +223,7 @@ public:
         }
         return eval;
     };
-
    
-    void printWinPos()
-    {
-        // Iterate over the elements of the vector
-        for (const auto& dim1 : WIN_POS) {
-            for (const auto& dim2 : dim1) {
-                for (const auto& element : dim2) {
-                    std::cout << element << " ";
-                }
-                std::cout << std::endl;  // Print a newline after each 2D matrix
-            }
-            std::cout << std::endl;  // Print an additional newline after each 3D layer
-        }
-    }
-
-    void printBoard() {
-        for(int rows = 0; rows < BOARD_SIZE; rows++) {
-            for(int cols = 0; cols < BOARD_SIZE; cols++) {
-                std::cout << BOARD[rows][cols];
-                if(cols < BOARD_SIZE-1) std::cout << " | ";
-            }
-            std::cout << std::endl;
-            for(int n = 0; n < 3*(BOARD_SIZE-1)+BOARD_SIZE; n++) if(rows<BOARD_SIZE-1) std::cout<<"-";
-            std::cout << std::endl;
-        }
-}
-
-
     int minmaxrec(brd_type state, int depth, int a, int b, bool isMAX)
 {
     int value = evaluate(state);
@@ -185,19 +231,19 @@ public:
         return value;
 
     bool prune = false;
-
+        
     if (isMAX)
     {
         int maxEval = MIN;
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < BOARD_SIZE; i++)
         {
-            for (int j = 0; j < 5; j++)
+            for (int j = 0; j < BOARD_SIZE; j++)
             {
-                if (state[i][j] == 0)
+                if (state[i][j] == EMPTY_CELL)
                 {
                     brd_type nextState = state;
-                    nextState[i][j] = 1;
-
+                    nextState[i][j] = BOT;
+                    
                     int eval = minmaxrec(nextState, depth - 1, a, b, false);
                     maxEval = std::max(maxEval, eval);
                     a = std::max(a, eval);
@@ -216,14 +262,14 @@ public:
     else
     {
         int minEval = MAX;
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < BOARD_SIZE; i++)
         {
-            for (int j = 0; j < 5; j++)
+            for (int j = 0; j < BOARD_SIZE; j++)
             {
-                if (state[i][j] == 0)
+                if (state[i][j] == EMPTY_CELL)
                 {
                     brd_type nextState = state;
-                    nextState[i][j] = 2;
+                    nextState[i][j] = PLAYER;
 
                     int eval = minmaxrec(nextState, depth - 1, a, b, true);
                     minEval = std::min(minEval, eval);
@@ -242,75 +288,84 @@ public:
     }
 }
 
+    std::pair<int, int> minmax(int depth, char player)
+    {   
+        std::pair<int, int> move;
+        if (!(player == 'X' || player == 'O')) {
+            move.first = -1;
+            move.second = -1;
+            return move;
+        }
+        int value = evaluate(BOARD);
+        if (depth == 0 || value == MIN || value == MAX) {
+            move.first= value;
+            move.second= value;
+            return move;
+        }
 
-    int minmax(brd_type state, int depth, int player)
-{
-    if (!(player == 1 || player == 2))
-        return -1;
-
-    int value = evaluate(state);
-    if (depth == 0 || value == MIN || value == MAX)
-        return value;
-
-    int move;
-    for (int i = 0; i < 5; i++)
-    {
-        for (int j = 0; j < 5; j++)
+        
+        for (int i = 0; i < BOARD_SIZE; i++)
         {
-            if (state[i][j] == 0) {
-                move = (i + 1) * 10 + j + 1;
-                break;
+            for (int j = 0; j < BOARD_SIZE; j++)
+            {
+                if (BOARD[i][j] == EMPTY_CELL) {
+                    move.first = i;
+                    move.second = j;
+                    break;
+                }
             }
         }
-    }
-
-    if (player == 1)
-    {
-        int maxEval = MIN;
-        for (int i = 0; i < 5; i++)
+        
+        if (player == 'O')
         {
-            for (int j = 0; j < 5; j++)
+            int maxEval = MIN;
+            for (int i = 0; i < BOARD_SIZE; i++)
             {
-                if (state[i][j] == 0)
+                for (int j = 0; j < BOARD_SIZE; j++)
                 {
-                    brd_type nextState = state;
-                    nextState[i][j] = 1;
-
-                    int eval = minmaxrec(nextState, depth - 1, maxEval, MAX, false);
-                    if (eval > maxEval)
+                    if (BOARD[i][j] == EMPTY_CELL)
                     {
-                        move = (i + 1) * 10 + j + 1;
-                        maxEval = eval;
+                        brd_type nextState = BOARD;
+                        nextState[i][j] = 1;
+                        int eval = minmaxrec(nextState, depth - 1, maxEval, MAX, false);
+
+                        if (eval > maxEval)
+                        {
+                            move.first = i;
+                            move.second = j;
+                            maxEval = eval;
+                        }
                     }
                 }
             }
         }
-    }
-    else
-    {
-        int minEval = MAX;
-        for (int i = 0; i < 5; i++)
+        
+        else
         {
-            for (int j = 0; j < 5; j++)
+            int minEval = MAX;
+            for (int i = 0; i < BOARD_SIZE; i++)
             {
-                if (state[i][j] == 0)
+                for (int j = 0; j < BOARD_SIZE; j++)
                 {
-                    brd_type nextState = state;
-                    nextState[i][j] = 2;
-
-                    int eval = minmaxrec(nextState, depth - 1, MIN, minEval, true);
-                    if (eval < minEval)
+                    if (BOARD[i][j] == EMPTY_CELL)
                     {
-                        move = (i + 1) * 10 + j + 1;
-                        minEval = eval;
+                        brd_type nextState = BOARD;
+                        nextState[i][j] = 2;
+
+                        int eval = minmaxrec(nextState, depth - 1, MIN, minEval, true);
+                        if (eval < minEval)
+                        {
+                            move.first = i;
+                            move.second = j;
+                            minEval = eval;
+                        }
                     }
                 }
             }
         }
-    }
 
-    return move;
-}
+        return move;
+    }
 
 
 };  
