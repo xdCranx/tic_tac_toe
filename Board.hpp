@@ -100,11 +100,11 @@ public:
             std::cout << "Board full, end" << std::endl;
             return true;
         }
-        else if(evaluate(BOARD) == MIN) {
+        else if(evaluate(BOARD, BOT) == MIN) {
             std::cout << "You won, end" << std:: endl;
             return true;
         }
-        else if (evaluate(BOARD) == MAX) {
+        else if (evaluate(BOARD, BOT) == MAX) {
             std::cout << "Bot won, end" << std::endl;
             return true;
         }
@@ -171,32 +171,69 @@ public:
     }
 
 //===========BOT=====================================================
-    int evaluate(brd_type state) {
+    int evaluate(brd_type state, char player) {
 
     //Iterate through all possible wins to check win
-        for (int i = 0; i < 2*BOARD_SIZE+2; i++)
-        {
-        //Check for bots's win
-            int isMAX = 0;
-            for(int j = 0; j < BOARD_SIZE; j++) {
-                if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != BOT))
-                {
-                    break;
+        if(player == BOT) {
+            for (int i = 0; i < 2*BOARD_SIZE+2; i++)
+            {
+            //Check for bots's win
+                int isMAX = 0;
+                for(int j = 0; j < BOARD_SIZE; j++) {
+                    if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] == BOT))
+                    {
+                        isMAX++;
+                    }
+                    else break;
                 }
-                else isMAX++;
-            }
-            if(isMAX==BOARD_SIZE) return 10000;
-        
-        //Check for players's win
-            int isMIN = 0;
-            for(int j =0; j < BOARD_SIZE; j++) {
-                if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != PLAYER))
-                {
-                    break;
+                if(isMAX==BOARD_SIZE) {
+                    int x;
+                    return 10000;
                 }
-                isMIN++;
             }
-            if(isMIN==BOARD_SIZE) return -10000;
+            for (int i = 0; i < 2*BOARD_SIZE+2; i++)
+            {
+            //Check for players's win
+                int isMIN = 0;
+                for(int j =0; j < BOARD_SIZE; j++) {
+                    if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] == PLAYER))
+                    {
+                        isMIN++;
+                    }
+                    else break;
+                }
+                if(isMIN==BOARD_SIZE) return -10000;
+            }
+        }
+        else
+        {        
+            for (int i = 0; i < 2*BOARD_SIZE+2; i++)
+            {
+            //Check for players's win
+                int isMIN = 0;
+                for(int j =0; j < BOARD_SIZE; j++) {
+                    if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] == PLAYER))
+                    {
+                        isMIN++;
+                    }
+                    else break;
+                }
+                if(isMIN==BOARD_SIZE) return -10000;
+            }
+            
+            for (int i = 0; i < 2*BOARD_SIZE+2; i++)
+            {
+            //Check for bots's win
+                int isMAX = 0;
+                for(int j = 0; j < BOARD_SIZE; j++) {
+                    if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] == BOT))
+                    {
+                        isMAX++;
+                    }
+                    else break;
+                }
+                if(isMAX==BOARD_SIZE) return 10000;
+            }
         }
     
     //Iterate through all possible wins to evaluate
@@ -204,13 +241,17 @@ public:
         for (int i = 0; i < 2*BOARD_SIZE+2; i++)
         {
             int isMAX = 0;
+            int botBoost = 0;
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if ((state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] != PLAYER))
                 {
+                    if(state[WIN_POS[i][j][0]][WIN_POS[i][j][1]] == BOT) {
+                        botBoost++;
+                    }
                     isMAX++;
                 }
             }
-            if(isMAX==BOARD_SIZE) eval++;
+            if(isMAX==BOARD_SIZE) eval = eval + 1;// +botBoost;
             
             int isMIN = 0;
             for(int j =0; j < BOARD_SIZE; j++) {
@@ -224,15 +265,15 @@ public:
         return eval;
     };
    
-    int minmaxrec(brd_type state, int depth, int a, int b, bool isMAX)
+    int minmaxrec(brd_type state, int depth, int a, int b, char player)
 {
-    int value = evaluate(state);
+    int value = evaluate(state, player);
     if (depth == 0 || value == MIN || value == MAX)
         return value;
 
     bool prune = false;
         
-    if (isMAX)
+    if (player == BOT)
     {
         int maxEval = MIN;
         for (int i = 0; i < BOARD_SIZE; i++)
@@ -244,7 +285,7 @@ public:
                     brd_type nextState = state;
                     nextState[i][j] = BOT;
                     
-                    int eval = minmaxrec(nextState, depth - 1, a, b, false);
+                    int eval = minmaxrec(nextState, depth - 1, a, b, PLAYER);
                     maxEval = std::max(maxEval, eval);
                     a = std::max(a, eval);
 
@@ -271,7 +312,7 @@ public:
                     brd_type nextState = state;
                     nextState[i][j] = PLAYER;
 
-                    int eval = minmaxrec(nextState, depth - 1, a, b, true);
+                    int eval = minmaxrec(nextState, depth - 1, a, b, BOT);
                     minEval = std::min(minEval, eval);
                     b = std::min(b, eval);
 
@@ -296,7 +337,7 @@ public:
             move.second = -1;
             return move;
         }
-        int value = evaluate(BOARD);
+        int value = evaluate(BOARD, player);
         if (depth == 0 || value == MIN || value == MAX) {
             move.first= value;
             move.second= value;
@@ -304,17 +345,17 @@ public:
         }
 
         
-        for (int i = 0; i < BOARD_SIZE; i++)
-        {
-            for (int j = 0; j < BOARD_SIZE; j++)
-            {
-                if (BOARD[i][j] == EMPTY_CELL) {
-                    move.first = i;
-                    move.second = j;
-                    break;
-                }
-            }
-        }
+        // for (int i = 0; i < BOARD_SIZE; i++)
+        // {
+        //     for (int j = 0; j < BOARD_SIZE; j++)
+        //     {
+        //         if (BOARD[i][j] == EMPTY_CELL) {
+        //             move.first = i;
+        //             move.second = j;
+        //             break;
+        //         }
+        //     }
+        // }
         
         if (player == 'O')
         {
@@ -326,8 +367,8 @@ public:
                     if (BOARD[i][j] == EMPTY_CELL)
                     {
                         brd_type nextState = BOARD;
-                        nextState[i][j] = 1;
-                        int eval = minmaxrec(nextState, depth - 1, maxEval, MAX, false);
+                        nextState[i][j] = 'O';
+                        int eval = minmaxrec(nextState, depth - 1, maxEval, MAX, PLAYER);
 
                         if (eval > maxEval)
                         {
@@ -350,9 +391,9 @@ public:
                     if (BOARD[i][j] == EMPTY_CELL)
                     {
                         brd_type nextState = BOARD;
-                        nextState[i][j] = 2;
+                        nextState[i][j] = 'X';
 
-                        int eval = minmaxrec(nextState, depth - 1, MIN, minEval, true);
+                        int eval = minmaxrec(nextState, depth - 1, MIN, minEval, BOT);
                         if (eval < minEval)
                         {
                             move.first = i;

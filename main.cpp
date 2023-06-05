@@ -1,8 +1,8 @@
 #include <iostream>
 #include "Board.hpp"
 
-const int SIZE = 5;
-const int BOT_DEPTH = 2;
+const int SIZE = 3;
+const int BOT_DEPTH = 3;
 
 
 int main(int argc, char *argv[]) {
